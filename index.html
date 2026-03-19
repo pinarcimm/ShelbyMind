@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShelbyMind — Decentralized AI Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #020408;
+  --surface:  #060C14;
+  --card:     #0A1220;
+  --card2:    #0E1628;
+  --border:   #0F2040;
+  --border2:  #1A3060;
+  --cyan:     #00FFFF;
+  --cyan2:    #00CCDD;
+  --magenta:  #FF00AA;
+  --magenta2: #CC0088;
+  --yellow:   #FFE600;
+  --green:    #00FF88;
+  --orange:   #FF6B00;
+  --white:    #E0F0FF;
+  --muted:    #2A4060;
+  --muted2:   #406080;
+  --orb:      'Orbitron', monospace;
+  --mono:     'Share Tech Mono', monospace;
+  --body:     'Rajdhani', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* Scanlines */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,255,255,0.015) 2px,
+    rgba(0,255,255,0.015) 4px
+  );
+  pointer-events:none; z-index:9998;
+}
+
+/* Animated grid bg */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,255,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridMove 20s linear infinite;
+  pointer-events:none; z-index:0;
+}
+
+@keyframes gridMove {
+  0%   { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+
+/* Glow effects */
+.glow-cyan    { text-shadow: 0 0 10px var(--cyan), 0 0 30px rgba(0,255,255,0.4); }
+.glow-magenta { text-shadow: 0 0 10px var(--magenta), 0 0 30px rgba(255,0,170,0.4); }
+.glow-green   { text-shadow: 0 0 10px var(--green), 0 0 20px rgba(0,255,136,0.3); }
+
+/* ── NAVBAR ── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  height:56px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 2rem;
+  background: rgba(2,4,8,0.95);
+  border-bottom: 1px solid var(--border2);
+  box-shadow: 0 0 30px rgba(0,255,255,0.05);
+}
+
+.logo {
+  font-family: var(--orb);
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0,255,255,0.6);
+  display:flex; align-items:center; gap:0.6rem;
+}
+
+.logo-icon {
+  width:30px; height:30px;
+  border: 1px solid var(--cyan);
+  border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.75rem;
+  box-shadow: 0 0 12px rgba(0,255,255,0.3), inset 0 0 8px rgba(0,255,255,0.1);
+  animation: iconPulse 3s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%,100% { box-shadow: 0 0 12px rgba(0,255,255,0.3), inset 0 0 8px rgba(0,255,255,0.1); }
+  50%     { box-shadow: 0 0 24px rgba(0,255,255,0.6), inset 0 0 16px rgba(0,255,255,0.2); }
+}
+
+.nav-tabs {
+  display:flex; gap:0.15rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius:6px; padding:0.2rem;
+}
+
+.nav-tab {
+  font-family: var(--mono);
+  font-size:0.68rem; letter-spacing:0.05em;
+  padding:0.3rem 0.9rem;
+  border-radius:4px; cursor:pointer;
+  color: var(--muted2); border:none; background:none;
+  transition: all 0.2s;
+}
+.nav-tab:hover { color:var(--cyan); }
+.nav-tab.active {
+  background: rgba(0,255,255,0.08);
+  color: var(--cyan);
+  border: 1px solid rgba(0,255,255,0.2);
+  text-shadow: 0 0 8px rgba(0,255,255,0.5);
+}
+
+.nav-right { display:flex; align-items:center; gap:0.8rem; }
+
+.nav-status {
+  font-family:var(--mono); font-size:0.62rem;
+  color:var(--muted2); letter-spacing:0.05em;
+  border:1px solid var(--border2); border-radius:4px;
+  padding:0.2rem 0.6rem;
+}
+
+.wallet-btn {
+  font-family:var(--mono); font-size:0.7rem;
+  padding:0.38rem 1rem; letter-spacing:0.05em;
+  background: rgba(255,0,170,0.08);
+  border:1px solid rgba(255,0,170,0.4);
+  border-radius:6px; color:var(--magenta);
+  cursor:pointer; transition:all 0.2s;
+  text-shadow: 0 0 8px rgba(255,0,170,0.4);
+}
+.wallet-btn:hover {
+  background: rgba(255,0,170,0.15);
+  box-shadow: 0 0 16px rgba(255,0,170,0.2);
+}
+.wallet-btn.connected {
+  background: rgba(0,255,136,0.08);
+  border-color: rgba(0,255,136,0.4);
+  color:var(--green);
+  text-shadow: 0 0 8px rgba(0,255,136,0.4);
+}
+
+/* ── PAGES ── */
+.page { display:none; padding-top:56px; }
+.page.active { display:block; }
+
+/* ══════════════════════
+   MARKETPLACE PAGE
+══════════════════════ */
+
+/* Hero */
+.hero {
+  position:relative; z-index:1;
+  text-align:center;
+  padding: 5rem 2rem 3rem;
+  overflow:hidden;
+}
+
+.hero-bg-orb {
+  position:absolute;
+  width:600px; height:600px;
+  border-radius:50%;
+  top:50%; left:50%; transform:translate(-50%,-60%);
+  background: radial-gradient(circle, rgba(0,255,255,0.06) 0%, rgba(255,0,170,0.04) 40%, transparent 70%);
+  pointer-events:none;
+  animation: orbPulse 6s ease-in-out infinite;
+}
+
+@keyframes orbPulse {
+  0%,100% { transform:translate(-50%,-60%) scale(1); opacity:1; }
+  50%     { transform:translate(-50%,-60%) scale(1.15); opacity:0.7; }
+}
+
+.hero-eyebrow {
+  font-family:var(--mono); font-size:0.68rem;
+  letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--magenta);
+  text-shadow:0 0 12px rgba(255,0,170,0.6);
+  margin-bottom:1.2rem;
+  display:flex; align-items:center; justify-content:center; gap:1rem;
+}
+.hero-eyebrow::before,.hero-eyebrow::after {
+  content:''; flex:1; max-width:60px; height:1px;
+  background:linear-gradient(90deg, transparent, var(--magenta));
+}
+.hero-eyebrow::after { background:linear-gradient(90deg, var(--magenta), transparent); }
+
+.hero h1 {
+  font-family:var(--orb);
+  font-size: clamp(2.5rem,5vw,4.5rem);
+  font-weight:900;
+  letter-spacing:0.08em;
+  line-height:1.1;
+  margin-bottom:1rem;
+}
+.hero h1 .c { color:var(--cyan); text-shadow:0 0 30px rgba(0,255,255,0.6); }
+.hero h1 .m { color:var(--magenta); text-shadow:0 0 30px rgba(255,0,170,0.6); }
+
+.hero-sub {
+  font-size:1rem; color:var(--muted2); max-width:560px;
+  margin:0 auto 2.5rem; line-height:1.7; letter-spacing:0.02em;
+}
+
+.hero-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+
+.btn-cyber {
+  font-family:var(--orb); font-weight:700; font-size:0.72rem;
+  letter-spacing:0.1em; padding:0.75rem 2rem;
+  background: transparent;
+  border:1px solid var(--cyan);
+  border-radius:4px; color:var(--cyan);
+  cursor:pointer; transition:all 0.2s;
+  text-shadow:0 0 8px rgba(0,255,255,0.5);
+  box-shadow:0 0 16px rgba(0,255,255,0.1), inset 0 0 16px rgba(0,255,255,0.05);
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+.btn-cyber:hover {
+  background: rgba(0,255,255,0.08);
+  box-shadow:0 0 30px rgba(0,255,255,0.25), inset 0 0 20px rgba(0,255,255,0.1);
+}
+
+.btn-cyber-magenta {
+  font-family:var(--orb); font-weight:700; font-size:0.72rem;
+  letter-spacing:0.1em; padding:0.75rem 2rem;
+  background: rgba(255,0,170,0.1);
+  border:1px solid var(--magenta);
+  border-radius:4px; color:var(--magenta);
+  cursor:pointer; transition:all 0.2s;
+  text-shadow:0 0 8px rgba(255,0,170,0.5);
+  box-shadow:0 0 16px rgba(255,0,170,0.15);
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+.btn-cyber-magenta:hover {
+  background: rgba(255,0,170,0.18);
+  box-shadow:0 0 30px rgba(255,0,170,0.3);
+}
+
+/* Stats */
+.stats-row {
+  position:relative; z-index:1;
+  display:flex; justify-content:center; gap:0;
+  max-width:900px; margin:0 auto 3rem;
+  padding:0 2rem;
+  border:1px solid var(--border2);
+  background:var(--surface);
+  clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+}
+
+.stat-cell {
+  flex:1; padding:1.2rem;
+  text-align:center; border-right:1px solid var(--border2);
+}
+.stat-cell:last-child { border-right:none; }
+.stat-val {
+  font-family:var(--orb); font-size:1.4rem; font-weight:700;
+  display:block; margin-bottom:0.2rem;
+}
+.stat-val.c { color:var(--cyan); text-shadow:0 0 12px rgba(0,255,255,0.5); }
+.stat-val.m { color:var(--magenta); text-shadow:0 0 12px rgba(255,0,170,0.5); }
+.stat-val.g { color:var(--green); text-shadow:0 0 12px rgba(0,255,136,0.5); }
+.stat-val.y { color:var(--yellow); text-shadow:0 0 12px rgba(255,230,0,0.5); }
+.stat-lbl { font-family:var(--mono); font-size:0.6rem; color:var(--muted2); letter-spacing:0.1em; }
+
+/* Filter bar */
+.filter-bar {
+  position:relative; z-index:1;
+  max-width:1100px; margin:0 auto 2rem;
+  padding:0 2rem;
+  display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;
+}
+
+.filter-label { font-family:var(--mono); font-size:0.65rem; color:var(--muted2); margin-right:0.5rem; }
+
+.filter-btn {
+  font-family:var(--mono); font-size:0.65rem; letter-spacing:0.05em;
+  padding:0.3rem 0.8rem;
+  background:transparent; border:1px solid var(--border2);
+  border-radius:3px; color:var(--muted2); cursor:pointer; transition:all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+  border-color:var(--cyan); color:var(--cyan);
+  background:rgba(0,255,255,0.05);
+  text-shadow:0 0 6px rgba(0,255,255,0.4);
+}
+
+/* Model grid */
+.model-grid {
+  position:relative; z-index:1;
+  max-width:1100px; margin:0 auto 5rem;
+  padding:0 2rem;
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
+  gap:1rem;
+}
+
+.model-card {
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:8px; overflow:hidden;
+  cursor:pointer; transition:all 0.25s;
+  animation:cardIn 0.4s ease both;
+  position:relative;
+}
+
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.model-card::before {
+  content:''; position:absolute;
+  top:0; left:0; right:0; height:1px;
+  transition: all 0.3s;
+}
+.model-card:hover {
+  border-color:rgba(0,255,255,0.4);
+  box-shadow:0 0 30px rgba(0,255,255,0.08), 0 0 0 1px rgba(0,255,255,0.1);
+  transform:translateY(-3px);
+}
+.model-card:hover::before {
+  background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+
+.card-header {
+  padding:1.1rem 1.2rem 0.8rem;
+  display:flex; align-items:flex-start; gap:0.9rem;
+}
+
+.model-icon {
+  width:44px; height:44px; border-radius:8px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.4rem; border:1px solid;
+}
+.icon-llm     { background:rgba(0,255,255,0.08); border-color:rgba(0,255,255,0.25); }
+.icon-image   { background:rgba(255,0,170,0.08); border-color:rgba(255,0,170,0.25); }
+.icon-audio   { background:rgba(255,230,0,0.08); border-color:rgba(255,230,0,0.25); }
+.icon-code    { background:rgba(0,255,136,0.08); border-color:rgba(0,255,136,0.25); }
+
+.model-header-info { flex:1; }
+.model-name {
+  font-family:var(--orb); font-size:0.8rem; font-weight:700;
+  letter-spacing:0.05em; margin-bottom:0.25rem;
+}
+.model-creator {
+  font-family:var(--mono); font-size:0.6rem; color:var(--muted2);
+}
+
+.model-type-badge {
+  font-family:var(--mono); font-size:0.58rem; letter-spacing:0.08em;
+  padding:0.18rem 0.5rem; border-radius:3px; white-space:nowrap;
+}
+.badge-llm   { background:rgba(0,255,255,0.1); border:1px solid rgba(0,255,255,0.25); color:var(--cyan); }
+.badge-image { background:rgba(255,0,170,0.1); border:1px solid rgba(255,0,170,0.25); color:var(--magenta); }
+.badge-audio { background:rgba(255,230,0,0.1); border:1px solid rgba(255,230,0,0.25); color:var(--yellow); }
+.badge-code  { background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.25); color:var(--green); }
+
+.card-desc {
+  padding:0 1.2rem 0.9rem;
+  font-size:0.82rem; color:var(--muted2); line-height:1.6;
+}
+
+.card-stats {
+  padding:0.7rem 1.2rem;
+  border-top:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+}
+
+.card-stat { text-align:center; }
+.cs-val { font-family:var(--mono); font-size:0.78rem; display:block; }
+.cs-lbl { font-family:var(--mono); font-size:0.55rem; color:var(--muted2); }
+
+.card-footer {
+  padding:0.8rem 1.2rem;
+  border-top:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+
+.card-price {
+  font-family:var(--orb); font-size:0.78rem; font-weight:700;
+  color:var(--yellow);
+  text-shadow:0 0 8px rgba(255,230,0,0.4);
+}
+
+.use-btn {
+  font-family:var(--mono); font-size:0.65rem; letter-spacing:0.05em;
+  padding:0.35rem 0.9rem;
+  background:rgba(0,255,255,0.08); border:1px solid rgba(0,255,255,0.3);
+  border-radius:4px; color:var(--cyan); cursor:pointer; transition:all 0.2s;
+}
+.use-btn:hover {
+  background:rgba(0,255,255,0.15);
+  box-shadow:0 0 12px rgba(0,255,255,0.2);
+}
+
+/* ══════════════════════
+   UPLOAD PAGE
+══════════════════════ */
+.upload-page {
+  position:relative; z-index:1;
+  max-width:780px; margin:0 auto;
+  padding:3rem 2rem 5rem;
+}
+
+.page-title {
+  font-family:var(--orb); font-size:1.4rem; font-weight:900;
+  letter-spacing:0.08em; color:var(--cyan);
+  text-shadow:0 0 20px rgba(0,255,255,0.4);
+  margin-bottom:0.4rem;
+}
+
+.page-sub {
+  font-family:var(--mono); font-size:0.68rem; color:var(--muted2);
+  letter-spacing:0.05em; margin-bottom:2rem;
+}
+
+.upload-card {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:10px; overflow:hidden; margin-bottom:1.2rem;
+  position:relative;
+}
+.upload-card::before {
+  content:''; position:absolute; top:0; left:20%; right:20%; height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+}
+
+.upload-zone {
+  padding:2.5rem 2rem; text-align:center;
+  cursor:pointer; transition:all 0.25s; position:relative;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  background:rgba(0,255,255,0.03);
+}
+.upload-zone input[type="file"] {
+  position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
+}
+
+.uz-hex {
+  width:64px; height:64px; margin:0 auto 1.2rem;
+  position:relative; display:flex; align-items:center; justify-content:center;
+}
+.uz-hex::before {
+  content:'⬡'; font-size:4rem; color:var(--cyan);
+  opacity:0.15; position:absolute;
+}
+.uz-hex-icon { font-size:1.6rem; position:relative; z-index:1; }
+
+.uz-title { font-family:var(--orb); font-size:0.9rem; color:var(--cyan); margin-bottom:0.4rem; letter-spacing:0.05em; }
+.uz-sub   { font-family:var(--mono); font-size:0.68rem; color:var(--muted2); }
+
+/* Form fields */
+.form-section { padding:1.5rem; border-top:1px solid var(--border); }
+.form-row { margin-bottom:1.1rem; }
+.form-label {
+  font-family:var(--mono); font-size:0.65rem; letter-spacing:0.1em;
+  color:var(--cyan); display:block; margin-bottom:0.4rem;
+  text-shadow:0 0 6px rgba(0,255,255,0.3);
+}
+
+.form-input {
+  width:100%; padding:0.6rem 0.9rem;
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:5px; color:var(--white);
+  font-family:var(--mono); font-size:0.78rem;
+  outline:none; transition:all 0.2s;
+}
+.form-input:focus {
+  border-color:var(--cyan);
+  box-shadow:0 0 12px rgba(0,255,255,0.1);
+}
+
+.form-textarea {
+  width:100%; padding:0.6rem 0.9rem; min-height:80px;
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:5px; color:var(--white);
+  font-family:var(--mono); font-size:0.75rem;
+  outline:none; transition:all 0.2s; resize:vertical;
+}
+.form-textarea:focus { border-color:var(--cyan); box-shadow:0 0 12px rgba(0,255,255,0.1); }
+
+.form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+
+.type-selector { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.type-opt {
+  font-family:var(--mono); font-size:0.65rem; letter-spacing:0.05em;
+  padding:0.35rem 0.8rem; border:1px solid var(--border2);
+  border-radius:4px; color:var(--muted2); cursor:pointer; transition:all 0.2s;
+  background:none;
+}
+.type-opt.selected { border-color:var(--cyan); color:var(--cyan); background:rgba(0,255,255,0.06); }
+
+/* Progress */
+.upload-progress {
+  display:none; padding:1rem 1.5rem;
+  border-top:1px solid var(--border); background:var(--surface);
+}
+.upload-progress.active { display:block; }
+
+.prog-row { display:flex; justify-content:space-between; margin-bottom:0.5rem; }
+.prog-name { font-family:var(--mono); font-size:0.68rem; color:var(--cyan); }
+.prog-pct  { font-family:var(--mono); font-size:0.68rem; color:var(--green); }
+
+.prog-track { height:2px; background:var(--border); border-radius:2px; overflow:hidden; margin-bottom:0.8rem; }
+.prog-fill  { height:100%; width:0%; background:linear-gradient(90deg,var(--magenta),var(--cyan)); transition:width 0.1s linear; }
+
+.prog-steps { display:flex; flex-wrap:wrap; gap:0.5rem 1.2rem; }
+.pstep { display:flex; align-items:center; gap:0.3rem; font-family:var(--mono); font-size:0.6rem; color:var(--muted); transition:color 0.3s; }
+.pstep.active { color:var(--cyan); }
+.pstep.done   { color:var(--green); }
+.pstep-dot { width:4px; height:4px; border-radius:50%; background:currentColor; }
+
+.blob-result {
+  display:none; padding:0.9rem 1.5rem;
+  border-top:1px solid rgba(0,255,255,0.15);
+  background:rgba(0,255,255,0.03);
+}
+.blob-result.active { display:block; }
+.blob-hdr { font-family:var(--mono); font-size:0.62rem; color:var(--green); margin-bottom:0.5rem; text-shadow:0 0 8px rgba(0,255,136,0.4); }
+.blob-row { display:flex; align-items:center; gap:0.6rem; background:var(--card2); border:1px solid var(--border2); border-radius:5px; padding:0.5rem 0.8rem; }
+.blob-val { font-family:var(--mono); font-size:0.7rem; color:var(--cyan); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.copy-btn { font-family:var(--mono); font-size:0.6rem; padding:0.2rem 0.5rem; background:rgba(0,255,255,0.08); border:1px solid rgba(0,255,255,0.25); border-radius:4px; color:var(--cyan); cursor:pointer; }
+
+/* Submit */
+.submit-btn {
+  width:100%; padding:0.9rem;
+  font-family:var(--orb); font-weight:700; font-size:0.82rem;
+  letter-spacing:0.12em;
+  background:transparent; border:1px solid var(--cyan);
+  color:var(--cyan); cursor:pointer; transition:all 0.2s;
+  text-shadow:0 0 10px rgba(0,255,255,0.5);
+  box-shadow:0 0 20px rgba(0,255,255,0.08), inset 0 0 20px rgba(0,255,255,0.04);
+  clip-path: polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
+}
+.submit-btn:hover {
+  background:rgba(0,255,255,0.06);
+  box-shadow:0 0 40px rgba(0,255,255,0.2), inset 0 0 30px rgba(0,255,255,0.08);
+}
+
+/* ══════════════════════
+   INFERENCE PAGE
+══════════════════════ */
+.inference-page {
+  position:relative; z-index:1;
+  max-width:900px; margin:0 auto;
+  padding:3rem 2rem 5rem;
+}
+
+.inference-layout { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+@media(max-width:700px) { .inference-layout { grid-template-columns:1fr; } }
+
+.inf-panel {
+  background:var(--card); border:1px solid var(--border2); border-radius:8px;
+  overflow:hidden;
+}
+
+.inf-panel-header {
+  padding:0.8rem 1.1rem; border-bottom:1px solid var(--border);
+  font-family:var(--mono); font-size:0.65rem; letter-spacing:0.1em;
+  display:flex; align-items:center; gap:0.5rem;
+}
+.inf-panel-header.cyan { color:var(--cyan); border-bottom-color:rgba(0,255,255,0.15); }
+.inf-panel-header.magenta { color:var(--magenta); border-bottom-color:rgba(255,0,170,0.15); }
+
+.model-selector-list {
+  padding:0.6rem;
+  display:flex; flex-direction:column; gap:0.4rem;
+  max-height:320px; overflow-y:auto;
+}
+
+.model-sel-item {
+  padding:0.7rem 0.9rem; border:1px solid var(--border);
+  border-radius:5px; cursor:pointer; transition:all 0.2s;
+  display:flex; align-items:center; gap:0.8rem;
+}
+.model-sel-item:hover { border-color:var(--cyan); background:rgba(0,255,255,0.04); }
+.model-sel-item.selected { border-color:var(--cyan); background:rgba(0,255,255,0.08); }
+
+.msi-icon { font-size:1.2rem; }
+.msi-name { font-family:var(--mono); font-size:0.7rem; color:var(--white); }
+.msi-price { font-family:var(--mono); font-size:0.6rem; color:var(--yellow); margin-left:auto; }
+
+/* Prompt area */
+.prompt-area { padding:1rem; }
+.prompt-input {
+  width:100%; min-height:100px; padding:0.7rem;
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:5px; color:var(--white);
+  font-family:var(--mono); font-size:0.75rem;
+  outline:none; resize:vertical; transition:all 0.2s;
+}
+.prompt-input:focus { border-color:var(--cyan); box-shadow:0 0 12px rgba(0,255,255,0.1); }
+
+.prompt-footer {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-top:0.8rem;
+}
+
+.selected-model-info { font-family:var(--mono); font-size:0.62rem; color:var(--muted2); }
+
+.run-btn {
+  font-family:var(--orb); font-weight:700; font-size:0.7rem;
+  letter-spacing:0.1em; padding:0.5rem 1.4rem;
+  background:rgba(255,0,170,0.1); border:1px solid var(--magenta);
+  color:var(--magenta); cursor:pointer; transition:all 0.2s;
+  text-shadow:0 0 8px rgba(255,0,170,0.4);
+  clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+}
+.run-btn:hover { background:rgba(255,0,170,0.18); box-shadow:0 0 20px rgba(255,0,170,0.25); }
+.run-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+/* Output */
+.output-section { margin-top:1.5rem; }
+.output-box {
+  background:var(--card); border:1px solid var(--border2); border-radius:8px;
+  overflow:hidden;
+}
+.output-header {
+  padding:0.7rem 1.1rem; border-bottom:1px solid var(--border);
+  font-family:var(--mono); font-size:0.62rem; color:var(--green);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.output-body {
+  padding:1.1rem; min-height:120px;
+  font-family:var(--mono); font-size:0.76rem; line-height:1.7;
+  color:var(--white);
+}
+.output-typing { color:var(--cyan); }
+.output-cursor {
+  display:inline-block; width:8px; height:14px;
+  background:var(--cyan); margin-left:2px;
+  animation:blink 1s step-end infinite;
+  vertical-align:middle;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.output-image-wrap {
+  padding:1rem; display:flex; align-items:center; justify-content:center;
+  min-height:200px;
+}
+
+/* ══════════════════════
+   PROFILE PAGE
+══════════════════════ */
+.profile-page {
+  position:relative; z-index:1;
+  max-width:1000px; margin:0 auto;
+  padding:3rem 2rem 5rem;
+}
+
+.profile-header {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:10px; padding:2rem; margin-bottom:2rem;
+  position:relative; overflow:hidden;
+  display:grid; grid-template-columns:auto 1fr auto; gap:2rem; align-items:center;
+}
+.profile-header::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,var(--magenta),var(--cyan),var(--green));
+}
+
+.profile-avatar {
+  width:68px; height:68px; border-radius:8px;
+  border:1px solid var(--cyan);
+  background:rgba(0,255,255,0.05);
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem;
+  box-shadow:0 0 20px rgba(0,255,255,0.2);
+}
+
+.profile-addr { font-family:var(--mono); font-size:0.7rem; color:var(--cyan); margin-bottom:0.3rem; }
+.profile-name { font-family:var(--orb); font-size:1.3rem; font-weight:900; letter-spacing:0.05em; margin-bottom:0.5rem; }
+.profile-tags { display:flex; gap:0.4rem; flex-wrap:wrap; }
+.ptag { font-family:var(--mono); font-size:0.58rem; padding:0.18rem 0.5rem; border:1px solid var(--border2); border-radius:3px; color:var(--muted2); }
+
+.profile-stats-right { display:flex; flex-direction:column; align-items:flex-end; gap:0.8rem; }
+.psr-item { text-align:right; }
+.psr-val { font-family:var(--orb); font-size:1.2rem; font-weight:700; display:block; }
+.psr-lbl { font-family:var(--mono); font-size:0.58rem; color:var(--muted2); }
+
+.earn-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0.8rem; margin-bottom:2rem; }
+
+.earn-card {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:8px; padding:1.2rem; position:relative; overflow:hidden;
+}
+.earn-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; }
+.earn-card.c::after { background:linear-gradient(90deg,transparent,var(--cyan),transparent); }
+.earn-card.m::after { background:linear-gradient(90deg,transparent,var(--magenta),transparent); }
+.earn-card.g::after { background:linear-gradient(90deg,transparent,var(--green),transparent); }
+.earn-card.y::after { background:linear-gradient(90deg,transparent,var(--yellow),transparent); }
+
+.ec-icon { font-size:1.3rem; display:block; margin-bottom:0.7rem; }
+.ec-label { font-family:var(--mono); font-size:0.6rem; color:var(--muted2); display:block; margin-bottom:0.3rem; letter-spacing:0.08em; }
+.ec-val { font-family:var(--orb); font-size:1.4rem; font-weight:700; display:block; }
+.earn-card.c .ec-val { color:var(--cyan); text-shadow:0 0 12px rgba(0,255,255,0.4); }
+.earn-card.m .ec-val { color:var(--magenta); text-shadow:0 0 12px rgba(255,0,170,0.4); }
+.earn-card.g .ec-val { color:var(--green); text-shadow:0 0 12px rgba(0,255,136,0.4); }
+.earn-card.y .ec-val { color:var(--yellow); text-shadow:0 0 12px rgba(255,230,0,0.4); }
+
+.section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+.section-title { font-family:var(--orb); font-size:0.85rem; font-weight:700; letter-spacing:0.08em; color:var(--cyan); }
+.section-tag   { font-family:var(--mono); font-size:0.6rem; color:var(--muted2); }
+
+.tx-list { display:flex; flex-direction:column; gap:0.5rem; margin-bottom:2rem; }
+.tx-item {
+  display:flex; align-items:center; gap:1rem;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:6px; padding:0.75rem 1rem; transition:all 0.2s;
+}
+.tx-item:hover { border-color:var(--border2); }
+.tx-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
+.tx-icon.earn  { background:rgba(0,255,136,0.1); }
+.tx-icon.store { background:rgba(0,255,255,0.1); }
+.tx-details { flex:1; }
+.tx-desc { font-size:0.8rem; font-weight:500; }
+.tx-id   { font-family:var(--mono); font-size:0.58rem; color:var(--muted2); margin-top:0.12rem; }
+.tx-amount { font-family:var(--mono); font-size:0.78rem; }
+.tx-amount.pos { color:var(--green); text-shadow:0 0 6px rgba(0,255,136,0.3); }
+.tx-amount.neg { color:var(--muted2); }
+.tx-time { font-family:var(--mono); font-size:0.58rem; color:var(--muted); }
+
+/* ── MODALS ── */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.85); backdrop-filter:blur(8px);
+  z-index:500; align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+
+.modal-box {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:10px; padding:2rem; width:360px;
+  position:relative; overflow:hidden;
+  animation:cardIn 0.25s ease;
+}
+.modal-box::before {
+  content:''; position:absolute; top:0; left:20%; right:20%; height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+}
+
+.modal-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.4rem; }
+.modal-ttl { font-family:var(--orb); font-size:0.9rem; font-weight:700; letter-spacing:0.08em; color:var(--cyan); }
+.modal-cls { background:none; border:none; color:var(--muted2); font-size:1rem; cursor:pointer; }
+
+.wallet-opt {
+  display:flex; align-items:center; gap:1rem; padding:1rem;
+  border:1px solid var(--border2); border-radius:7px;
+  cursor:pointer; transition:all 0.2s;
+}
+.wallet-opt:hover { border-color:var(--cyan); background:rgba(0,255,255,0.04); box-shadow:0 0 16px rgba(0,255,255,0.08); }
+.wopt-name { font-family:var(--orb); font-size:0.8rem; font-weight:700; }
+.wopt-sub  { font-family:var(--mono); font-size:0.62rem; color:var(--muted2); margin-top:0.15rem; }
+.wopt-rec  { margin-left:auto; font-family:var(--mono); font-size:0.58rem; color:var(--green); }
+
+/* Pay modal */
+.pay-model-info {
+  display:flex; align-items:center; gap:1rem;
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:7px; padding:0.9rem; margin-bottom:1.2rem;
+}
+.pay-model-icon { font-size:2rem; width:48px; text-align:center; }
+.pay-model-name { font-family:var(--orb); font-size:0.78rem; font-weight:700; margin-bottom:0.2rem; }
+.pay-model-type { font-family:var(--mono); font-size:0.6rem; color:var(--muted2); }
+
+.pay-amount-box {
+  background:var(--surface); border:1px solid rgba(255,230,0,0.2);
+  border-radius:7px; padding:1.2rem; text-align:center; margin-bottom:1.2rem;
+}
+.pay-amount-val { font-family:var(--orb); font-size:2rem; font-weight:900; color:var(--yellow); display:block; text-shadow:0 0 20px rgba(255,230,0,0.4); }
+.pay-amount-lbl { font-family:var(--mono); font-size:0.6rem; color:var(--muted2); margin-top:0.2rem; display:block; }
+.pay-channel    { font-family:var(--mono); font-size:0.58rem; color:var(--cyan); margin-top:0.3rem; display:block; }
+
+.pay-btn {
+  width:100%; padding:0.85rem;
+  font-family:var(--orb); font-weight:900; font-size:0.82rem; letter-spacing:0.1em;
+  background:rgba(255,0,170,0.1); border:1px solid var(--magenta);
+  color:var(--magenta); cursor:pointer; transition:all 0.2s;
+  text-shadow:0 0 10px rgba(255,0,170,0.5);
+  clip-path: polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+}
+.pay-btn:hover { background:rgba(255,0,170,0.2); box-shadow:0 0 30px rgba(255,0,170,0.3); }
+.pay-secure { font-family:var(--mono); font-size:0.58rem; color:var(--muted2); text-align:center; margin-top:0.8rem; }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:2rem; right:2rem;
+  background:var(--card2); border:1px solid var(--border2);
+  border-radius:6px; padding:0.8rem 1.2rem;
+  font-family:var(--mono); font-size:0.72rem;
+  z-index:9000; max-width:300px;
+  transform:translateY(80px); opacity:0; transition:all 0.3s ease;
+  clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+}
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* ── FOOTER ── */
+footer {
+  position:relative; z-index:1;
+  border-top:1px solid var(--border2); padding:1.5rem 2rem;
+  text-align:center; font-family:var(--mono); font-size:0.65rem; color:var(--muted2);
+}
+footer a { color:var(--cyan); text-decoration:none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">⬡</div>
+    SHELBYMIND
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('market')">MARKET</button>
+    <button class="nav-tab" onclick="showPage('upload')">UPLOAD</button>
+    <button class="nav-tab" onclick="showPage('inference')">INFERENCE</button>
+    <button class="nav-tab" onclick="showPage('profile')">PROFILE</button>
+  </div>
+  <div class="nav-right">
+    <span class="nav-status">SHELBY TESTNET</span>
+    <button class="wallet-btn" id="walletBtn" onclick="openWalletModal()">[ CONNECT PETRA ]</button>
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- WALLET MODAL -->
+<div class="modal-overlay" id="walletModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-ttl">CONNECT WALLET</span>
+      <button class="modal-cls" onclick="closeModal('walletModal')">✕</button>
+    </div>
+    <div class="wallet-opt" onclick="connectPetra()">
+      <span style="font-size:2rem;">🦊</span>
+      <div>
+        <div class="wopt-name">PETRA WALLET</div>
+        <div class="wopt-sub">Aptos native wallet</div>
+      </div>
+      <span class="wopt-rec">RECOMMENDED</span>
+    </div>
+  </div>
+</div>
+
+<!-- PAY MODAL -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-ttl">RUN INFERENCE</span>
+      <button class="modal-cls" onclick="closeModal('payModal')">✕</button>
+    </div>
+    <div class="pay-model-info">
+      <div class="pay-model-icon" id="payIcon"></div>
+      <div>
+        <div class="pay-model-name" id="payName"></div>
+        <div class="pay-model-type" id="payType"></div>
+      </div>
+    </div>
+    <div class="pay-amount-box">
+      <span class="pay-amount-val" id="payAmount"></span>
+      <span class="pay-amount-lbl">APT per inference</span>
+      <span class="pay-channel">via shelby micropayment channel</span>
+    </div>
+    <button class="pay-btn" onclick="confirmInference()">⚡ EXECUTE WITH PETRA</button>
+    <div class="pay-secure">🔒 secured by aptos blockchain · shelby protocol</div>
+  </div>
+</div>
+
+<!-- ══ MARKETPLACE ══ -->
+<div class="page active" id="page-market">
+  <section class="hero">
+    <div class="hero-bg-orb"></div>
+    <div class="hero-eyebrow">POWERED BY SHELBY PROTOCOL</div>
+    <h1><span class="c">SHELBY</span><span class="m">MIND</span></h1>
+    <p class="hero-sub">The first decentralized AI model marketplace. Upload your model to Shelby's blob network. Earn APT every time someone runs inference. No cloud. No middleman. No censorship.</p>
+    <div class="hero-btns">
+      <button class="btn-cyber" onclick="showPage('upload')">↑ UPLOAD MODEL</button>
+      <button class="btn-cyber-magenta" onclick="showPage('inference')">⚡ RUN INFERENCE</button>
+    </div>
+  </section>
+
+  <div class="stats-row">
+    <div class="stat-cell">
+      <span class="stat-val c" id="statModels">0</span>
+      <span class="stat-lbl">MODELS STORED</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-val m" id="statInferences">0</span>
+      <span class="stat-lbl">INFERENCES RUN</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-val g" id="statEarned">0.000 APT</span>
+      <span class="stat-lbl">TOTAL EARNED</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-val y">∞</span>
+      <span class="stat-lbl">UPTIME GUARANTEE</span>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <span class="filter-label">FILTER:</span>
+    <button class="filter-btn active" onclick="filterModels('all',this)">ALL</button>
+    <button class="filter-btn" onclick="filterModels('llm',this)">LLM</button>
+    <button class="filter-btn" onclick="filterModels('image',this)">IMAGE GEN</button>
+    <button class="filter-btn" onclick="filterModels('audio',this)">AUDIO</button>
+    <button class="filter-btn" onclick="filterModels('code',this)">CODE</button>
+  </div>
+
+  <div class="model-grid" id="modelGrid"></div>
+
+  <footer>SHELBYMIND · built on <a href="https://shelby.xyz" target="_blank">shelby protocol</a> · aptos testnet · <a href="#">github</a></footer>
+</div>
+
+<!-- ══ UPLOAD ══ -->
+<div class="page" id="page-upload">
+  <div class="upload-page">
+    <div class="page-title">UPLOAD MODEL</div>
+    <div class="page-sub">// store your AI model on shelby network · earn APT on every inference</div>
+
+    <div class="upload-card">
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept=".bin,.gguf,.pt,.safetensors,.pkl,.onnx,.zip">
+        <div class="uz-hex"><div class="uz-hex-icon">🧠</div></div>
+        <div class="uz-title">DROP MODEL WEIGHTS HERE</div>
+        <div class="uz-sub">.bin · .gguf · .pt · .safetensors · .onnx · .zip</div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-row">
+          <label class="form-label">// MODEL NAME</label>
+          <input class="form-input" id="modelName" placeholder="e.g. MindCore-7B-Instruct" type="text">
+        </div>
+        <div class="form-row">
+          <label class="form-label">// DESCRIPTION</label>
+          <textarea class="form-textarea" id="modelDesc" placeholder="Describe what your model does, capabilities, training data..."></textarea>
+        </div>
+        <div class="form-row-2">
+          <div>
+            <label class="form-label">// MODEL TYPE</label>
+            <div class="type-selector" id="typeSelector">
+              <button class="type-opt selected" onclick="selectType(this,'llm')">LLM</button>
+              <button class="type-opt" onclick="selectType(this,'image')">IMAGE GEN</button>
+              <button class="type-opt" onclick="selectType(this,'audio')">AUDIO</button>
+              <button class="type-opt" onclick="selectType(this,'code')">CODE</button>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">// PRICE PER INFERENCE (APT)</label>
+            <input class="form-input" id="modelPrice" placeholder="0.010" type="number" step="0.001" min="0.001">
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-progress" id="uploadProgress">
+        <div class="prog-row">
+          <span class="prog-name" id="progressFilename">uploading...</span>
+          <span class="prog-pct" id="progressPct">0%</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="progressFill"></div></div>
+        <div class="prog-steps">
+          <div class="pstep" id="ps1"><div class="pstep-dot"></div>chunking weights</div>
+          <div class="pstep" id="ps2"><div class="pstep-dot"></div>erasure coding</div>
+          <div class="pstep" id="ps3"><div class="pstep-dot"></div>SP node dispersal</div>
+          <div class="pstep" id="ps4"><div class="pstep-dot"></div>aptos commitment</div>
+          <div class="pstep" id="ps5"><div class="pstep-dot"></div>marketplace listing</div>
+        </div>
+      </div>
+
+      <div class="blob-result" id="blobResult">
+        <div class="blob-hdr">✓ MODEL STORED ON SHELBY · INFERENCE ENABLED</div>
+        <div class="blob-row">
+          <span class="blob-val" id="blobIdVal"></span>
+          <button class="copy-btn" onclick="copyBlobId()">COPY</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="submit-btn" onclick="uploadModel()">⬆ DEPLOY TO SHELBY NETWORK</button>
+  </div>
+</div>
+
+<!-- ══ INFERENCE ══ -->
+<div class="page" id="page-inference">
+  <div class="inference-page">
+    <div class="page-title">RUN INFERENCE</div>
+    <div class="page-sub">// select a model · send prompt · pay APT · get output</div>
+
+    <div class="inference-layout">
+      <div class="inf-panel">
+        <div class="inf-panel-header cyan">// SELECT MODEL</div>
+        <div class="model-selector-list" id="modelSelectorList">
+          <div style="padding:1rem;font-family:var(--mono);font-size:0.7rem;color:var(--muted2);">// no models yet · upload one first</div>
+        </div>
+      </div>
+
+      <div class="inf-panel">
+        <div class="inf-panel-header magenta">// PROMPT INPUT</div>
+        <div class="prompt-area">
+          <textarea class="prompt-input" id="promptInput" placeholder="Enter your prompt here...&#10;&#10;e.g. 'Explain quantum computing in simple terms'&#10;     'Generate a cyberpunk landscape'&#10;     'Write a Python sorting algorithm'"></textarea>
+          <div class="prompt-footer">
+            <span class="selected-model-info" id="selectedModelInfo">// no model selected</span>
+            <button class="run-btn" id="runBtn" onclick="runInference()" disabled>⚡ EXECUTE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-section">
+      <div class="output-box">
+        <div class="output-header">
+          <span>// OUTPUT STREAM</span>
+          <span id="outputMeta" style="color:var(--muted2);">awaiting inference</span>
+        </div>
+        <div class="output-body" id="outputBody">
+          <span style="color:var(--muted);">// select a model and enter a prompt to begin</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROFILE ══ -->
+<div class="page" id="page-profile">
+  <div class="profile-page">
+
+    <div class="profile-header">
+      <div class="profile-avatar">🦊</div>
+      <div>
+        <div class="profile-addr" id="profileAddr">NOT CONNECTED</div>
+        <div class="profile-name" id="profileName">CONNECT WALLET</div>
+        <div class="profile-tags">
+          <span class="ptag">AI CREATOR</span>
+          <span class="ptag">APTOS TESTNET</span>
+          <span class="ptag">SHELBY EARLY ACCESS</span>
+        </div>
+      </div>
+      <div class="profile-stats-right">
+        <div class="psr-item">
+          <span class="psr-val" id="psrModels" style="color:var(--cyan);">0</span>
+          <span class="psr-lbl">MODELS</span>
+        </div>
+        <div class="psr-item">
+          <span class="psr-val" id="psrEarned" style="color:var(--yellow);">0 APT</span>
+          <span class="psr-lbl">EARNED</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="earn-grid">
+      <div class="earn-card c">
+        <span class="ec-icon">🧠</span>
+        <span class="ec-label">MODELS DEPLOYED</span>
+        <span class="ec-val" id="ecModels">0</span>
+      </div>
+      <div class="earn-card y">
+        <span class="ec-icon">💰</span>
+        <span class="ec-label">TOTAL EARNED</span>
+        <span class="ec-val" id="ecEarned">0.000 APT</span>
+      </div>
+      <div class="earn-card m">
+        <span class="ec-icon">⚡</span>
+        <span class="ec-label">INFERENCES SOLD</span>
+        <span class="ec-val" id="ecInferences">0</span>
+      </div>
+      <div class="earn-card g">
+        <span class="ec-icon">📦</span>
+        <span class="ec-label">STORAGE USED</span>
+        <span class="ec-val" id="ecStorage">0 MB</span>
+      </div>
+    </div>
+
+    <div class="section-hdr">
+      <span class="section-title">TX HISTORY</span>
+      <span class="section-tag">// aptos blockchain</span>
+    </div>
+    <div class="tx-list" id="txList">
+      <div style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--muted);border:1px dashed var(--border);border-radius:6px;">// no transactions yet</div>
+    </div>
+
+    <div class="section-hdr">
+      <span class="section-title">YOUR MODELS</span>
+      <span class="section-tag" id="profileModelCount">// 0 models</span>
+    </div>
+    <div class="model-grid" id="profileModelGrid">
+      <div style="grid-column:1/-1;padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--muted);border:1px dashed var(--border);border-radius:6px;">// upload models to see them here</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── STATE ──
+  let models = [];
+  let totalMB = 0;
+  let totalAPT = 0;
+  let totalInferences = 0;
+  let txHistory = [];
+  let currentBlobId = "";
+  let walletConnected = false;
+  let walletAddr = "";
+  let selectedModel = null;
+  let pendingModel = null;
+  let selectedType = 'llm';
+  let currentFilter = 'all';
+
+  // Default demo models
+  const defaultModels = [
+    { name:"MindCore-7B", type:"llm", icon:"🧠", desc:"General purpose instruction-tuned LLM. Fast inference, strong reasoning.", price:"0.012", creator:"0x3f8a...c921", blob:"0x7f3a...e812", inferences:1240, size:"4.2 GB", rating:4.8 },
+    { name:"CyberVision-XL", type:"image", icon:"🎨", desc:"High-res image generation. Specializes in cyberpunk, sci-fi, and futuristic aesthetics.", price:"0.025", creator:"0x9b2d...f047", blob:"0xa5c2...f021", inferences:880, size:"6.8 GB", rating:4.9 },
+    { name:"CodeForge-13B", type:"code", icon:"💻", desc:"Code generation and completion. Supports 40+ programming languages.", price:"0.018", creator:"0x2e7f...b304", blob:"0x2d8f...c394", inferences:2100, size:"8.1 GB", rating:4.7 },
+    { name:"SynthWave-Audio", type:"audio", icon:"🎵", desc:"Music and audio generation. Creates ambient, electronic, and cinematic soundscapes.", price:"0.020", creator:"0x6c1a...d882", blob:"0x4e91...b105", inferences:560, size:"3.5 GB", rating:4.6 },
+    { name:"NanoLLM-1B", type:"llm", icon:"⚡", desc:"Ultra-fast lightweight LLM for simple tasks. Low latency, low cost.", price:"0.003", creator:"0x8d4e...a231", blob:"0x1c7d...e362", inferences:5400, size:"0.8 GB", rating:4.5 },
+    { name:"PixelDream-v2", type:"image", icon:"🖼️", desc:"Photorealistic image synthesis with fine-grained prompt control.", price:"0.030", creator:"0x4f9c...7b56", blob:"0x9b3e...d490", inferences:320, size:"9.2 GB", rating:4.9 },
+  ];
+
+  models = [...defaultModels];
+
+  // ── UTILS ──
+  function randHex(n) { return Array.from({length:n},()=>"0123456789abcdef"[Math.floor(Math.random()*16)]).join(''); }
+  function genBlobId() { return "0x"+randHex(6)+"..."+randHex(6); }
+  function genTxId()   { return "0x"+randHex(12); }
+  function fmtBytes(b) {
+    if(b<1024*1024) return (b/1024).toFixed(1)+" KB";
+    if(b<1024*1024*1024) return (b/1024/1024).toFixed(2)+" MB";
+    return (b/1024/1024/1024).toFixed(2)+" GB";
+  }
+
+  const typeColors = { llm:'cyan', image:'magenta', audio:'yellow', code:'green' };
+  const typeLabels = { llm:'LLM', image:'IMAGE GEN', audio:'AUDIO', code:'CODE' };
+
+  // ── PAGES ──
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+name).classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach((t,i)=>{
+      t.classList.toggle('active',['market','upload','inference','profile'][i]===name);
+    });
+    if(name==='market')    renderMarket();
+    if(name==='inference') renderInferenceSelector();
+    if(name==='profile')   updateProfile();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  // ── RENDER MARKET ──
+  function renderMarket(filter) {
+    filter = filter || currentFilter;
+    const grid = document.getElementById('modelGrid');
+    const filtered = filter==='all' ? models : models.filter(m=>m.type===filter);
+
+    document.getElementById('statModels').textContent = models.length;
+    document.getElementById('statInferences').textContent = totalInferences + models.reduce((a,m)=>a+(m.inferences||0),0);
+    document.getElementById('statEarned').textContent = totalAPT.toFixed(3)+' APT';
+
+    if(filtered.length===0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;padding:3rem;text-align:center;font-family:var(--mono);font-size:0.75rem;color:var(--muted);border:1px dashed var(--border);border-radius:6px;">// no models found</div>';
+      return;
+    }
+
+    grid.innerHTML = '';
+    filtered.forEach((m,i) => {
+      const card = document.createElement('div');
+      card.className = 'model-card';
+      card.style.animationDelay = (i*0.06)+'s';
+      const tc = typeColors[m.type]||'cyan';
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="model-icon icon-${m.type}">${m.icon}</div>
+          <div class="model-header-info">
+            <div class="model-name glow-${tc==='cyan'?'cyan':tc==='magenta'?'magenta':'green'}" style="color:var(--${tc})">${m.name}</div>
+            <div class="model-creator">${m.creator}</div>
+          </div>
+          <span class="model-type-badge badge-${m.type}">${typeLabels[m.type]}</span>
+        </div>
+        <div class="card-desc">${m.desc}</div>
+        <div class="card-stats">
+          <div class="card-stat">
+            <span class="cs-val" style="color:var(--cyan)">${m.inferences?.toLocaleString()||0}</span>
+            <span class="cs-lbl">INFERENCES</span>
+          </div>
+          <div class="card-stat">
+            <span class="cs-val" style="color:var(--muted2)">${m.size}</span>
+            <span class="cs-lbl">SIZE</span>
+          </div>
+          <div class="card-stat">
+            <span class="cs-val" style="color:var(--green)">${m.blob}</span>
+            <span class="cs-lbl">BLOB ID</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="card-price">${m.price} APT / inference</span>
+          <button class="use-btn" onclick="event.stopPropagation();openPayModal(${models.indexOf(m)})">⚡ USE MODEL</button>
+        </div>`;
+      card.addEventListener('click', ()=>openPayModal(models.indexOf(m)));
+      grid.appendChild(card);
+    });
+  }
+
+  function filterModels(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderMarket(type);
+  }
+
+  // ── INFERENCE SELECTOR ──
+  function renderInferenceSelector() {
+    const list = document.getElementById('modelSelectorList');
+    if(models.length===0) {
+      list.innerHTML = '<div style="padding:1rem;font-family:var(--mono);font-size:0.7rem;color:var(--muted2);">// no models yet · upload one first</div>';
+      return;
+    }
+    list.innerHTML = '';
+    models.forEach((m,i)=>{
+      const item = document.createElement('div');
+      item.className = 'model-sel-item' + (selectedModel===m?' selected':'');
+      item.innerHTML = `
+        <span class="msi-icon">${m.icon}</span>
+        <span class="msi-name">${m.name}</span>
+        <span class="msi-price">${m.price} APT</span>`;
+      item.addEventListener('click',()=>{
+        selectedModel = m;
+        document.querySelectorAll('.model-sel-item').forEach(el=>el.classList.remove('selected'));
+        item.classList.add('selected');
+        document.getElementById('selectedModelInfo').textContent = '// '+m.name+' · '+m.price+' APT';
+        document.getElementById('runBtn').disabled = false;
+      });
+      list.appendChild(item);
+    });
+  }
+
+  // ── RUN INFERENCE ──
+  function runInference() {
+    if(!selectedModel) return;
+    const prompt = document.getElementById('promptInput').value.trim();
+    if(!prompt) { showToast('// enter a prompt first', 'magenta'); return; }
+
+    if(!walletConnected) {
+      pendingModel = { model: selectedModel, prompt };
+      openPayModal(models.indexOf(selectedModel));
+      return;
+    }
+    pendingModel = { model: selectedModel, prompt };
+    openPayModal(models.indexOf(selectedModel));
+  }
+
+  function openPayModal(idx) {
+    const m = models[idx];
+    if(!m) return;
+    pendingModel = pendingModel || { model:m, prompt:'' };
+    pendingModel.model = m;
+
+    document.getElementById('payIcon').textContent = m.icon;
+    document.getElementById('payName').textContent = m.name;
+    document.getElementById('payType').textContent = typeLabels[m.type]+' · '+m.size;
+    document.getElementById('payAmount').textContent = m.price+' APT';
+    document.getElementById('payModal').classList.add('open');
+  }
+
+  function confirmInference() {
+    closeModal('payModal');
+    if(!pendingModel) return;
+    const m = pendingModel.model;
+    const prompt = pendingModel.prompt || document.getElementById('promptInput').value || 'Tell me about decentralized AI';
+
+    const earned = parseFloat(m.price);
+    totalAPT += earned;
+    totalInferences++;
+    m.inferences = (m.inferences||0)+1;
+
+    txHistory = [{
+      type:'earn', desc:'Inference sold · '+m.name,
+      id:genTxId(), amount:'+'+m.price+' APT', time:'just now'
+    }, ...txHistory];
+
+    // Go to inference page and show typing animation
+    showPage('inference');
+    renderInferenceSelector();
+    simulateOutput(m, prompt);
+    updateProfile();
+    renderMarket();
+    showToast('✓ INFERENCE EXECUTED · +'+m.price+' APT', 'cyan');
+    pendingModel = null;
+  }
+
+  function simulateOutput(model, prompt) {
+    const body = document.getElementById('outputBody');
+    const meta = document.getElementById('outputMeta');
+    meta.textContent = model.name+' · '+model.price+' APT · via shelby network';
+
+    const responses = {
+      llm: [
+        "Analyzing your prompt through the neural network layers...\n\nDecentralized AI represents a paradigm shift in how we think about artificial intelligence infrastructure. Instead of relying on centralized servers controlled by a handful of corporations, models live on distributed storage networks like Shelby Protocol — immutable, censorship-resistant, and permanently accessible.\n\nThe key insight is this: when model weights are stored as blobs on Shelby's network with cryptographic commitments on the Aptos blockchain, no single entity can modify, remove, or restrict access to that intelligence. It becomes a public good.",
+        "Processing request...\n\nThe future of AI is not in the hands of a few large companies. It belongs to the network. With ShelbyMind, any developer can deploy their model to the Shelby blob network and earn APT for every inference — creating a true marketplace of intelligence where the best models rise naturally through usage.",
+      ],
+      image: "🎨 Generating image from prompt...\n\n[RENDERING CYBERPUNK LANDSCAPE]\n\nResolution: 1024x1024\nSteps: 28/28 ✓\nCFG Scale: 7.5\n\nImage generation complete.\n\nBlob ID: "+genBlobId()+"\nStored on Shelby network permanently.\nShare link: shelby://"+genBlobId(),
+      code:  "```python\n# Generated by CodeForge-13B via ShelbyMind\n# Stored on Shelby Protocol · Aptos committed\n\nimport asyncio\nfrom shelby_sdk import ShelbyClient\n\nasync def decentralized_inference(model_blob_id: str, prompt: str) -> str:\n    '''\n    Run inference on a model stored in Shelby network\n    Pays APT micropayment to model owner automatically\n    '''\n    client = ShelbyClient(rpc_endpoint='shelby.xyz')\n    \n    # Establish micropayment channel\n    channel = await client.open_payment_channel(\n        model_blob_id=model_blob_id,\n        initial_deposit=0.1  # APT\n    )\n    \n    # Run inference\n    result = await channel.infer(prompt=prompt)\n    return result.output\n\n# Usage\noutput = asyncio.run(\n    decentralized_inference(\n        model_blob_id='0x7f3a9c...e812b4',\n        prompt='Explain quantum entanglement'\n    )\n)\nprint(output)\n```",
+      audio: "🎵 Generating audio from prompt...\n\n[SYNTHESIZING WAVEFORM]\n\nDuration: 30s\nSample rate: 44100 Hz\nBitrate: 320 kbps\nFormat: WAV\n\nGeneration complete.\n\nBlob ID: "+genBlobId()+"\nAudio stored on Shelby network permanently.\nStreaming URL: shelby-stream://"+genBlobId(),
+    };
+
+    const resp = Array.isArray(responses[model.type])
+      ? responses[model.type][Math.floor(Math.random()*responses[model.type].length)]
+      : responses[model.type] || responses.llm[0];
+
+    body.innerHTML = '';
+    let i = 0;
+    const cursor = document.createElement('span');
+    cursor.className = 'output-cursor';
+
+    function typeNext() {
+      if(i < resp.length) {
+        body.textContent = resp.substring(0,i+1);
+        body.appendChild(cursor);
+        i++;
+        setTimeout(typeNext, resp[i-1]==='\n' ? 30 : 8);
+      } else {
+        cursor.remove();
+      }
+    }
+    typeNext();
+  }
+
+  // ── UPLOAD ──
+  function selectType(btn, type) {
+    selectedType = type;
+    document.querySelectorAll('.type-opt').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  function uploadModel() {
+    const name  = document.getElementById('modelName').value.trim();
+    const desc  = document.getElementById('modelDesc').value.trim();
+    const price = document.getElementById('modelPrice').value || '0.010';
+    const file  = document.getElementById('fileInput').files[0];
+
+    if(!name) { showToast('// enter a model name', 'magenta'); return; }
+    if(!desc)  { showToast('// enter a description', 'magenta'); return; }
+
+    const prog   = document.getElementById('uploadProgress');
+    const blobEl = document.getElementById('blobResult');
+    const fill   = document.getElementById('progressFill');
+    const pct    = document.getElementById('progressPct');
+    const fn     = document.getElementById('progressFilename');
+
+    prog.classList.add('active');
+    blobEl.classList.remove('active');
+    fn.textContent  = file ? file.name : name+'.bin (simulated)';
+    pct.textContent = '0%';
+    fill.style.width = '0%';
+    ['ps1','ps2','ps3','ps4','ps5'].forEach(id=>document.getElementById(id).className='pstep');
+
+    let p = 0;
+    const thresholds = [20,42,65,85,100];
+    const stepIds    = ['ps1','ps2','ps3','ps4','ps5'];
+
+    const timer = setInterval(()=>{
+      p += Math.random()*3+1.5;
+      if(p>100) p=100;
+      fill.style.width = p+'%';
+      pct.textContent  = Math.round(p)+'%';
+
+      thresholds.forEach((t,idx)=>{
+        const el = document.getElementById(stepIds[idx]);
+        if(p>=t) el.classList.add('done');
+        else if(p>=(thresholds[idx-1]||0)) el.classList.add('active');
+      });
+
+      if(p>=100) {
+        clearInterval(timer);
+        currentBlobId = genBlobId();
+        document.getElementById('blobIdVal').textContent = currentBlobId;
+        blobEl.classList.add('active');
+        setTimeout(()=>prog.classList.remove('active'), 1600);
+
+        const icons = {llm:'🧠',image:'🎨',audio:'🎵',code:'💻'};
+        const newModel = {
+          name, type:selectedType, icon:icons[selectedType]||'🧠',
+          desc, price, creator: walletAddr||'0x????...????',
+          blob:currentBlobId,
+          size: file ? fmtBytes(file.size) : (Math.random()*8+0.5).toFixed(1)+' GB',
+          inferences:0, rating:5.0
+        };
+
+        models = [newModel, ...models];
+        totalMB += file ? file.size/(1024*1024) : Math.random()*8000+500;
+
+        txHistory = [{
+          type:'store', desc:'Model deployed · '+name,
+          id:genTxId(), amount:'—', time:'just now'
+        }, ...txHistory];
+
+        updateProfile(); renderMarket();
+        showToast('✓ '+name+' DEPLOYED TO SHELBY · '+price+' APT/inference', 'cyan');
+
+        // Clear form
+        document.getElementById('modelName').value='';
+        document.getElementById('modelDesc').value='';
+        document.getElementById('modelPrice').value='';
+        document.getElementById('fileInput').value='';
+      }
+    }, 55);
+  }
+
+  document.getElementById('fileInput').addEventListener('change', function(e){
+    if(e.target.files[0]) {
+      document.getElementById('progressFilename').textContent = e.target.files[0].name;
+    }
+  });
+
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover',  e=>{e.preventDefault();zone.classList.add('dragover');});
+  zone.addEventListener('dragleave', ()=>zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e=>{
+    e.preventDefault(); zone.classList.remove('dragover');
+    if(e.dataTransfer.files[0]) document.getElementById('fileInput').files = e.dataTransfer.files;
+  });
+
+  // ── WALLET ──
+  function openWalletModal() {
+    if(walletConnected) {
+      walletConnected=false; walletAddr='';
+      document.getElementById('walletBtn').textContent='[ CONNECT PETRA ]';
+      document.getElementById('walletBtn').classList.remove('connected');
+      showToast('WALLET DISCONNECTED', 'muted');
+      updateProfile();
+    } else {
+      document.getElementById('walletModal').classList.add('open');
+    }
+  }
+
+  function connectPetra() {
+    closeModal('walletModal');
+    walletAddr = '0x'+randHex(4)+'...'+randHex(4);
+    walletConnected = true;
+    const btn = document.getElementById('walletBtn');
+    btn.textContent = '🦊 '+walletAddr;
+    btn.classList.add('connected');
+    showToast('🦊 PETRA CONNECTED · '+walletAddr, 'cyan');
+    updateProfile();
+  }
+
+  // ── PROFILE ──
+  function updateProfile() {
+    document.getElementById('profileAddr').textContent = walletAddr || 'NOT CONNECTED';
+    document.getElementById('profileName').textContent = walletAddr ? '🦊 '+walletAddr : 'CONNECT WALLET';
+    document.getElementById('psrModels').textContent   = models.filter(m=>m.creator===walletAddr).length || models.length;
+    document.getElementById('psrEarned').textContent   = totalAPT.toFixed(3)+' APT';
+    document.getElementById('ecModels').textContent    = models.length;
+    document.getElementById('ecEarned').textContent    = totalAPT.toFixed(3)+' APT';
+    document.getElementById('ecInferences').textContent= totalInferences;
+    document.getElementById('ecStorage').textContent   = totalMB.toFixed(0)+' MB';
+    document.getElementById('profileModelCount').textContent = '// '+models.length+' models';
+
+    const txList = document.getElementById('txList');
+    if(txHistory.length===0) {
+      txList.innerHTML = '<div style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--muted);border:1px dashed var(--border);border-radius:6px;">// no transactions yet</div>';
+    } else {
+      txList.innerHTML = txHistory.slice(0,8).map(tx=>`
+        <div class="tx-item">
+          <div class="tx-icon ${tx.type}">${tx.type==='earn'?'💰':'📦'}</div>
+          <div class="tx-details">
+            <div class="tx-desc">${tx.desc}</div>
+            <div class="tx-id">${tx.id}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="tx-amount ${tx.type==='earn'?'pos':'neg'}">${tx.amount}</div>
+            <div class="tx-time">${tx.time}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    const pmg = document.getElementById('profileModelGrid');
+    const icons = {llm:'cyan',image:'magenta',audio:'yellow',code:'green'};
+    pmg.innerHTML = models.length===0
+      ? '<div style="grid-column:1/-1;padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--muted);border:1px dashed var(--border);border-radius:6px;">// upload models to see them here</div>'
+      : models.map(m=>`
+          <div class="model-card" style="cursor:default;">
+            <div class="card-header">
+              <div class="model-icon icon-${m.type}">${m.icon}</div>
+              <div class="model-header-info">
+                <div class="model-name" style="color:var(--${icons[m.type]||'cyan'})">${m.name}</div>
+                <div class="model-creator">${m.blob}</div>
+              </div>
+              <span class="model-type-badge badge-${m.type}">${typeLabels[m.type]}</span>
+            </div>
+            <div class="card-footer">
+              <span class="card-price">${m.price} APT / inference</span>
+              <span style="font-family:var(--mono);font-size:0.62rem;color:var(--green);">${m.inferences} runs</span>
+            </div>
+          </div>`).join('');
+  }
+
+  // ── COPY ──
+  function copyBlobId() {
+    navigator.clipboard.writeText(currentBlobId).catch(()=>{});
+    showToast('✓ BLOB ID COPIED', 'cyan');
+  }
+
+  // ── MODAL ──
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') ['walletModal','payModal'].forEach(closeModal); });
+
+  // ── TOAST ──
+  function showToast(msg, type='cyan') {
+    const t = document.getElementById('toast');
+    const colors = {cyan:'#00FFFF',magenta:'#FF00AA',green:'#00FF88',yellow:'#FFE600',muted:'#406080'};
+    t.textContent = msg;
+    t.style.color = colors[type]||colors.cyan;
+    t.style.borderColor = (colors[type]||colors.cyan)+'44';
+    t.classList.add('show');
+    clearTimeout(t._t);
+    t._t = setTimeout(()=>t.classList.remove('show'),3500);
+  }
+
+  // Init
+  renderMarket();
+</script>
+</body>
+</html>
